@@ -94,21 +94,27 @@ export const getLogs = async (req, res, next) => {
     }
 
     const { limit, to, from } = req.query;
-    const [{ minDate, maxDate }] = await Exercise.findAll({
-      attributes: [
-        [sequelize.fn("min", sequelize.col("date")), "minDate"],
-        [sequelize.fn("max", sequelize.col("date")), "maxDate"],
-      ],
-      raw: true,
-    });
+
+    let minMax;
+    if (to || from) {
+      const [obj] = await Exercise.findAll({
+        attributes: [
+          [sequelize.fn("min", sequelize.col("date")), "minDate"],
+          [sequelize.fn("max", sequelize.col("date")), "maxDate"],
+        ],
+        raw: true,
+      });
+      minMax = obj;
+    }
+
     const { count, rows } = await Exercise.findAndCountAll({
       where: {
         userId: _id,
         ...((from || to) && {
           date: {
             [Op.between]: [
-              from ? moment(from).format(DATE_FORMAT) : minDate,
-              to ? moment(to).format(DATE_FORMAT) : maxDate,
+              from ? moment(from).format(DATE_FORMAT) : minMax.minDate,
+              to ? moment(to).format(DATE_FORMAT) : minMax.maxDate,
             ],
           },
         }),
