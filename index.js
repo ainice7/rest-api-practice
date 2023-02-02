@@ -13,7 +13,11 @@ const app = express();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 config();
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
